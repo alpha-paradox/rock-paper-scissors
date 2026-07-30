@@ -1,6 +1,21 @@
-// Rock Paper Scissors — played entirely in the console.
+// Rock Paper Scissors — versiunea vizuala (in pagina, nu in consola).
 
-// Step 2: randomly return "rock", "paper" or "scissors".
+// ===== Scorul (variabile globale) =====
+let humanScore = 0;
+let computerScore = 0;
+let humanChoice = null; // ce a ales jucatorul; null = inca nimic
+const TOTAL_ROUNDS = 5;
+let roundsPlayed = 0;
+
+// ===== Legaturi cu elementele din HTML =====
+const humanScoreEl = document.querySelector("#human-score");
+const computerScoreEl = document.querySelector("#computer-score");
+const resultEl = document.querySelector("#result");
+const playButton = document.querySelector("#play-button");
+const choicesContainer = document.querySelector(".choices");
+const choiceButtons = document.querySelectorAll(".choice");
+
+// ===== Alegerea calculatorului (random) =====
 function getComputerChoice() {
   const roll = Math.floor(Math.random() * 3);
   if (roll === 0) return "rock";
@@ -8,53 +23,110 @@ function getComputerChoice() {
   return "scissors";
 }
 
-// Step 3: get the human choice via prompt (assumes valid input).
-function getHumanChoice() {
-  return prompt("Enter your choice: rock, paper or scissors");
+// ===== Emoji pentru fiecare alegere (pentru mesaje) =====
+function icon(choice) {
+  if (choice === "rock") return "✊";
+  if (choice === "paper") return "✋";
+  return "✌️";
 }
 
-// Step 6: play the whole game — scores live inside playGame.
-function playGame() {
-  let humanScore = 0;
-  let computerScore = 0;
+// ===== Selectarea unei iconite prin click =====
+// Fiecare iconita asculta un click; cea aleasa ramane evidentiata.
+choiceButtons.forEach(function (button) {
+  button.addEventListener("click", function () {
+    humanChoice = button.dataset.choice; // "rock" / "paper" / "scissors"
 
-  // Step 5: play a single round.
-  function playRound(humanChoice, computerChoice) {
-    humanChoice = humanChoice.toLowerCase();
+    // scoate selectia de pe toate, apoi o pune doar pe cea apasata
+    choiceButtons.forEach((b) => b.classList.remove("selected"));
+    button.classList.add("selected");
 
-    if (humanChoice === computerChoice) {
-      console.log(`It's a tie! You both chose ${humanChoice}`);
-      return;
-    }
+    // sterge celelalte iconite (clasa .locked din CSS)
+    choicesContainer.classList.add("locked");
 
-    const humanWins =
-      (humanChoice === "rock" && computerChoice === "scissors") ||
-      (humanChoice === "paper" && computerChoice === "rock") ||
-      (humanChoice === "scissors" && computerChoice === "paper");
+    resultEl.textContent = `You chose ${icon(humanChoice)} — press Play Game!`;
+  });
+});
 
-    if (humanWins) {
-      humanScore++;
-      console.log(`You win! ${humanChoice} beats ${computerChoice}`);
-    } else {
-      computerScore++;
-      console.log(`You lose! ${computerChoice} beats ${humanChoice}`);
-    }
+// ===== O singura runda =====
+function playRound(humanChoice, computerChoice) {
+  if (humanChoice === computerChoice) {
+    return `It's a tie! You both chose ${icon(humanChoice)}`;
   }
 
-  for (let round = 0; round < 5; round++) {
-    const humanSelection = getHumanChoice();
-    const computerSelection = getComputerChoice();
-    playRound(humanSelection, computerSelection);
-  }
+  const humanWins =
+    (humanChoice === "rock" && computerChoice === "scissors") ||
+    (humanChoice === "paper" && computerChoice === "rock") ||
+    (humanChoice === "scissors" && computerChoice === "paper");
 
-  console.log(`Final score — You: ${humanScore}, Computer: ${computerScore}`);
-  if (humanScore > computerScore) {
-    console.log("You won the game!");
-  } else if (humanScore < computerScore) {
-    console.log("You lost the game!");
+  if (humanWins) {
+    humanScore++;
+    return `You win! ${icon(humanChoice)} beats ${icon(computerChoice)}`;
   } else {
-    console.log("The game is a tie!");
+    computerScore++;
+    return `You lose! ${icon(computerChoice)} beats ${icon(humanChoice)}`;
   }
 }
 
-playGame();
+// ===== Afiseaza scorul pe ecran =====
+function updateScore() {
+  humanScoreEl.textContent = humanScore;
+  computerScoreEl.textContent = computerScore;
+}
+
+// ===== Reseteaza pentru un joc nou =====
+function resetGame() {
+  humanScore = 0;
+  computerScore = 0;
+  roundsPlayed = 0;
+  humanChoice = null;
+  updateScore();
+  choiceButtons.forEach((b) => b.classList.remove("selected"));
+  choicesContainer.classList.remove("locked");
+  playButton.textContent = "Play Game";
+}
+
+// ===== Butonul Play Game =====
+playButton.addEventListener("click", function () {
+  // Daca jocul s-a terminat, apasarea reporneste totul.
+  if (roundsPlayed >= TOTAL_ROUNDS) {
+    resetGame();
+    resultEl.textContent = "New game! Choose an icon, then press Play Game.";
+    return;
+  }
+
+  // Trebuie sa fi ales o iconita inainte de a juca.
+  if (humanChoice === null) {
+    resultEl.textContent = "Pick an icon first!";
+    return;
+  }
+
+  const computerChoice = getComputerChoice();
+  const message = playRound(humanChoice, computerChoice);
+
+  updateScore();
+  resultEl.textContent = message;
+  roundsPlayed++;
+
+  // mica animatie (shake) la fiecare runda
+  choicesContainer.classList.add("shake");
+  setTimeout(() => choicesContainer.classList.remove("shake"), 400);
+
+  // pregateste urmatoarea runda: deblocheaza alegerea
+  humanChoice = null;
+  choiceButtons.forEach((b) => b.classList.remove("selected"));
+  choicesContainer.classList.remove("locked");
+
+  // La final de joc, anunta castigatorul.
+  if (roundsPlayed >= TOTAL_ROUNDS) {
+    let finalMessage;
+    if (humanScore > computerScore) {
+      finalMessage = `🏆 You won the game ${humanScore}–${computerScore}!`;
+    } else if (humanScore < computerScore) {
+      finalMessage = `😢 You lost the game ${humanScore}–${computerScore}.`;
+    } else {
+      finalMessage = `🤝 The game is a tie ${humanScore}–${computerScore}.`;
+    }
+    resultEl.textContent = finalMessage;
+    playButton.textContent = "Play Again";
+  }
+});

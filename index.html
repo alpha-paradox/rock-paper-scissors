@@ -4,9 +4,34 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rock Paper Scissors</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <p>Rock Paper Scissors is played in the console. Open the developer tools (F12) and check the console.</p>
+    <!-- Scorul, sus pe mijloc -->
+    <div class="scoreboard">
+      <div class="score-box">
+        You<br /><span id="human-score">0</span>
+      </div>
+      <div class="score-box">
+        Computer<br /><span id="computer-score">0</span>
+      </div>
+    </div>
+
+    <h1>Rock Paper Scissors</h1>
+
+    <!-- Cele 3 iconite care se misca; se aleg prin click -->
+    <div class="choices">
+      <button class="choice" data-choice="rock">✊</button>
+      <button class="choice" data-choice="paper">✋</button>
+      <button class="choice" data-choice="scissors">✌️</button>
+    </div>
+
+    <!-- Butonul verde de joc -->
+    <button id="play-button">Play Game</button>
+
+    <!-- Aici apar mesajele rundei -->
+    <p id="result">Choose an icon, then press Play Game.</p>
+
     <script src="script.js"></script>
   </body>
 </html>
